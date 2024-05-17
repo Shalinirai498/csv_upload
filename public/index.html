@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        form {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #progress {
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        #data {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+            text-align: right;
+            margin-right: 10px;
+        }
+
+        input[type="number"] {
+            padding: 5px;
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #price {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload CSV</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".csv" required>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="progress"></div>
+    <div id="data"></div>
+
+    <h2>Subscription Price Calculator</h2>
+    <label for="credit_score">Credit Score:</label>
+    <input type="number" id="credit_score" name="credit_score" required><br><br>
+    <label for="credit_lines">Credit Lines:</label>
+    <input type="number" id="credit_lines" name="credit_lines" required><br><br>
+    <button type="button" onclick="calculatePrice()">Calculate Price</button>
+    <div id="price"></div>
+
+    <script>
+        function calculatePrice() {
+            const creditScore = parseInt(document.getElementById('credit_score').value);
+            const creditLines = parseInt(document.getElementById('credit_lines').value);
+
+            fetch('/calculate-price', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ creditScore, creditLines })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('price').innerText = 'Subscription Price: $' + data.subscriptionPrice;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('data').innerText = JSON.stringify(data.data);
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
